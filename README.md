@@ -1,4 +1,3 @@
-
 # LINGI2145-Project1 : MicroServices
 
 As part of this project, we were asked to take on the role of a back-end development team for a fruit and vegetable online ordering website. This site contains the basic elements of client authentication with username and password. A customer can then place products in his basket to finally make the actual order. We must take into account the fact that Admins will have to maintain this site, so it is essential at our level to distinguish between a normal user and an admin who is trying to make changes to the website. We first worked on virtual machines locally within our company and then deployed our work on the Microsoft Azure platform
