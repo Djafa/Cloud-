@@ -1,0 +1,1 @@
+Add new replicas of: scapp_catalog-service. The total number is  replicas.

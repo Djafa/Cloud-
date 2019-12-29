@@ -1,0 +1,13 @@
+version: "3"
+services:
+  catalog_db:
+    image: meroxbe/storage-service:shopapp
+    ports:
+      - 4001:5984
+  catalog_init_db:
+    image: catalog_init_db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+

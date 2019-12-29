@@ -1,0 +1,13 @@
+version: "3"
+services:
+  order_db:
+    image: meroxbe/storage-service:shopapp
+    ports:
+      - 6001:5984
+  order_init_db:
+    image: order_init_db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+

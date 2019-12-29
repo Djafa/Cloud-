@@ -1,0 +1,111 @@
+version: "3"
+services:
+  orders-db:
+    image: storage-service:shopapp
+    ports:
+      - 9001:5984
+  order_init_db:
+    image: order_init_db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+  order-service:
+    image: order-service:shopapp
+    depends_on: [ "orders-db" ]
+    ports: [ "9000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  catalog-db:
+    image: storage-service:shopapp
+    ports:
+      - 4001:5984
+  catalog_init_db:
+    image: catalog_init_db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+  catalog-service:
+    image: catalog-service:shopapp
+    # link both services (same effect of option --link in docker run)
+    depends_on: [ "catalog-db" ]
+    # expose port number 3000 of host running this service
+    ports: [ "4000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  logs-db:
+    image: storage-service:shopapp
+    ports:
+      - 7001:5984
+  logging_init_db:
+    image: logging_init_db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+  logging-service:
+    image: logging-service
+    depends_on: [ "logs-db" ]
+    ports: [ "7000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure  
+  users-db:
+    image: storage-service:shopapp
+    ports:
+      - 3001:5984
+  users_init_db:
+    image: users_init_db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+  users-service:
+    image: auth-service:shopapp
+    # link both services (same effect of option --link in docker run)
+    depends_on: [ "users-db" ]
+    #depends_on: [ "product-catalog" ]
+    # expose port number 3000 of host running this service
+    ports: [ "3000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+  cart-db:
+    image: storage-service:shopapp
+    ports: [ "5001:5984" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure  
+  cart-service:
+    image: cart-service:shopapp
+    depends_on: [ "cart-db" ]
+    ports: [ "5000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  front-service:
+    #image: meroxbe/front-service:shopapp
+    image: front
+    depends_on: [ "users-service" ]
+    ports: ["44097:80"]
+    environment: 
+      REACT_APP_AUTH_SERVICE_URL: http://192.168.56.102:3000
+      REACT_APP_PRODUCT_SERVICE_URL: http://192.168.56.102:4000
+      REACT_APP_CART_SERVICE_URL: http://192.168.56.102:5000
+      REACT_APP_HISTORY_SERVICE_URL: http://192.168.56.102:9000
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+      restart_policy:
+        condition: none

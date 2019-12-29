@@ -1,0 +1,134 @@
+version: "3"
+services:     # list all services for your application
+  # database of users
+  users-db:
+    # image name
+    image: meroxbe/storage-service:shopapp
+    ports: ["3001:5984"]
+    deploy:
+      # deploy only one instance of this service
+      replicas: 1
+      restart_policy:
+        # restart if something went wrong
+        condition: on-failure
+    networks: [ "scapp-net" ]
+  # server that listens HTTP requests
+  users-service:
+    image: meroxbe/auth-service:shopapp
+    # link both services (same effect of option --link in docker run)
+    depends_on: [ "users-db" ]
+    #depends_on: [ "product-catalog" ]
+    # expose port number 3000 of host running this service
+    ports: [ "3000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ]
+  # Docker GUI for swarms
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports: [ "8080:80" ]
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      # locate this service in the swarm manager
+      placement:
+        constraints:
+          - node.role == manager
+    networks: [ "scapp-net" ] 
+  # to reach the front end
+  front-service:
+    #image: meroxbe/front-service:shopapp
+    image: front
+    depends_on: [ "users-service" ]
+    ports: ["44097:80"]
+    environment: 
+      REACT_APP_AUTH_SERVICE_URL: http://192.168.56.102:3000
+      REACT_APP_PRODUCT_SERVICE_URL: http://192.168.56.102:4000
+      REACT_APP_CART_SERVICE_URL: http://192.168.56.102:5000
+      REACT_APP_HISTORY_SERVICE_URL: http://192.168.56.102:6000
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ]
+ # database of product catalog
+  catalog-db:
+    image: meroxbe/storage-service:shopapp
+    # expose port number 3000 of host running this service
+    ports: [ "4001:5984" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ] 
+  # server that listen HTTP request for product catalogproduct catalog
+  catalog-service:
+    image: catalog-service:shopapp
+    # link both services (same effect of option --link in docker run)
+    depends_on: [ "catalog-db" ]
+    # expose port number 3000 of host running this service
+    ports: [ "4000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ]
+  cart-db:
+    image: meroxbe/storage-service:shopapp
+    ports: [ "5001:5984" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ]   
+  cart-service:
+    image: meroxbe/cart-service:shopapp
+    depends_on: [ "cart-db" ]
+    ports: [ "5000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ]
+  orders-db:
+    image: meroxbe/storage-service:shopapp
+    ports: [ "6001:5984" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ]   
+  order-service:
+    image: meroxbe/order-service:shopapp
+    depends_on: [ "orders-db" ]
+    ports: [ "6000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ]
+  logs-db:
+    image: meroxbe/storage-service:shopapp
+    ports: [ "7001:5984" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ]   
+  logging-service:
+    image: meroxbe/logging-service:shopapp
+    depends_on: [ "logs-db" ]
+    ports: [ "7000:80" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks: [ "scapp-net" ]
+networks:
+  scapp-net:
+    external: true

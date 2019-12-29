@@ -1,0 +1,4 @@
+*.vdi
+*.iso
+*.ppk
+.DS_Store
