@@ -3,7 +3,7 @@
     "start": "gulp --gulpfile gulpfile.js"
   },
   "dependencies": {
-    "debug": "2.6.6",
+    "debug": "4.1.1",
 
     "express": "4.15.2",
     "body-parser": "1.17.1",
